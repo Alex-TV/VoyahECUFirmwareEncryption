@@ -4,7 +4,7 @@ from core.decryption import decrypt_files
 from core.settings_manager import SettingsManager
 
 class DecryptionTab(QWidget):
-    def __init__(self):
+    def __init__(self, settings: SettingsManager):
         super().__init__()
         self.bin_file_path = None
         self.otx_file_path = None
@@ -12,13 +12,20 @@ class DecryptionTab(QWidget):
         self.priv_key_path = None
         self.cert_path = None
         self.save_path = None
-        self.settings = SettingsManager()
+        self.settings = settings
         self.init_ui()
         self.load_paths_from_settings()
 
     def init_ui(self):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
+
+        title_label = QLabel("🔓 Decryption:")
+        title_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+
+        layout.addSpacing(20)
 
         # Encrypted Bin file selection
         bin_layout = QHBoxLayout()

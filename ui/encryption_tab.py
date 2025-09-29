@@ -6,13 +6,13 @@ from core.settings_manager import SettingsManager
 from core.output_manager import OutputManager
 
 class EncryptionTab(QWidget):
-    def __init__(self):
+    def __init__(self, settings: SettingsManager):
         super().__init__()
         self.bin_file_path = None
         self.otx_file_path = None
         self.aes_key = None
         self.iv_key = None
-        self.settings = SettingsManager()
+        self.settings = settings
         self.load_aes_keys()
         self.init_ui()
         self.load_paths_from_settings()
@@ -20,6 +20,13 @@ class EncryptionTab(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
+
+        title_label = QLabel("🔐 Encryption:")
+        title_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+
+        layout.addSpacing(20)
 
         # ECU selection
         ecu_layout = QHBoxLayout()
@@ -52,6 +59,7 @@ class EncryptionTab(QWidget):
         otx_layout.addWidget(self.otx_path)
         otx_layout.addWidget(otx_btn)
         layout.addLayout(otx_layout)
+
 
         # Buttons
         encrypt_all_btn = QPushButton('Encrypt All Files')

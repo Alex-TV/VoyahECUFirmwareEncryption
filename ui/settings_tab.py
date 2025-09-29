@@ -6,9 +6,9 @@ from core.settings_manager import SettingsManager
 from core.encryption import generate_pkcs7_envelop
 
 class SettingsTab(QWidget):
-    def __init__(self):
+    def __init__(self, settings: SettingsManager):
         super().__init__()
-        self.settings = SettingsManager()
+        self.settings = settings
         self.aes_key = None
         self.iv_key = None
         self.envelop = None
@@ -18,6 +18,13 @@ class SettingsTab(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
+
+        title_label = QLabel("⚙️ Settings:")
+        title_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+
+        layout.addSpacing(20)
 
         # OpenSSL path
         openssl_layout = QHBoxLayout()
@@ -58,15 +65,15 @@ class SettingsTab(QWidget):
         sign_key_layout.addWidget(sign_key_btn)
         layout.addLayout(sign_key_layout)
 
-        # Save directory
-        save_layout = QHBoxLayout()
-        save_layout.addWidget(QLabel('Save Directory:'))
-        self.save_path = QLineEdit()
-        save_btn = QPushButton('Browse')
-        save_btn.clicked.connect(self.select_save_dir)
-        save_layout.addWidget(self.save_path)
-        save_layout.addWidget(save_btn)
-        layout.addLayout(save_layout)
+        # Output directory
+        output_layout = QHBoxLayout()
+        output_layout.addWidget(QLabel('Output Directory:'))
+        self.output_path = QLineEdit()
+        output_btn = QPushButton('Browse')
+        output_btn.clicked.connect(self.select_output_path)
+        output_layout.addWidget(self.output_path)
+        output_layout.addWidget(output_btn)
+        layout.addLayout(output_layout)
 
         # Generate AES Keys
         gen_aes_btn = QPushButton('Generate AES Key & IV')
@@ -95,7 +102,7 @@ class SettingsTab(QWidget):
             self.cert_path.setText(path)
             self.settings.set_cert_path(path)
         if self.aes_key and self.iv_key:
-            self.envelop = generate_pkcs7_envelop(self.aes_key, path, self.save_path.text(), self.openssl_path.text())
+            self.envelop = generate_pkcs7_envelop(self.aes_key, path, self.output_path.text(), self.openssl_path.text())
             self.envelop_label.setText(f'Envelop: ✅ Generated')
             self.settings.set_envelop(self.envelop)
 
@@ -111,15 +118,15 @@ class SettingsTab(QWidget):
             self.sign_key_path.setText(path)
             self.settings.set_sign_key_path(path)
 
-    def select_save_dir(self):
-        path = QFileDialog.getExistingDirectory(self, 'Select Save Directory')
+    def select_output_path(self):
+        path = QFileDialog.getExistingDirectory(self, 'Select Output Directory')
         if path:
-            self.save_path.setText(path)
-            self.settings.set_save_path(path)
+            self.output_path.setText(path)
+            self.settings.set_output_path(path)
 
     def generate_aes(self):
         self.aes_key, self.iv_key = generate_aes_key_iv()
-        self.envelop = generate_pkcs7_envelop(self.aes_key, self.cert_path.text(), self.save_path.text(), self.openssl_path.text())
+        self.envelop = generate_pkcs7_envelop(self.aes_key, self.cert_path.text(), self.output_path.text(), self.openssl_path.text())
         self.settings.set_aes_key(self.aes_key)
         self.settings.set_iv_key(self.iv_key)
         self.settings.set_envelop(self.envelop)
@@ -132,7 +139,7 @@ class SettingsTab(QWidget):
         self.cert_path.setText(self.settings.get_cert_path())
         self.sign_cert_path.setText(self.settings.get_sign_cert_path())
         self.sign_key_path.setText(self.settings.get_sign_key_path())
-        self.save_path.setText(self.settings.get_save_path())
+        self.output_path.setText(self.settings.get_output_path())
 
         self.aes_key = self.settings.get_aes_key()
         self.iv_key = self.settings.get_iv_key()
