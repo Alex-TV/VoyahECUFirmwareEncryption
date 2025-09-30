@@ -39,14 +39,20 @@ class ContextTab(QWidget):
         context_layout.addWidget(context_btn)
         layout.addLayout(context_layout)
 
+        fill_group_box = QGroupBox("🧰 Fill")
+        fill_layout = QVBoxLayout()
+
         # Buttons
         update_by_firmware_info_btn = QPushButton('Update by firmware_info.json')
         update_by_firmware_info_btn.clicked.connect(self.update_context)
-        layout.addWidget(update_by_firmware_info_btn)
+        fill_layout.addWidget(update_by_firmware_info_btn)
+
+        fill_group_box.setLayout(fill_layout)
+        layout.addWidget(fill_group_box)
 
         layout.addSpacing(20)
 
-        group_box = QGroupBox("Cleaning")
+        cleaning_group_box = QGroupBox("🧹 Cleaning")
         inner_layout = QVBoxLayout()
         # Горизонтальный макет для имени и поля ввода
         input_layout = QHBoxLayout()
@@ -71,9 +77,9 @@ class ContextTab(QWidget):
         clear_btn.clicked.connect(self.clear_context)
         inner_layout.addWidget(clear_btn)
 
-        group_box.setLayout(inner_layout)
+        cleaning_group_box.setLayout(inner_layout)
 
-        layout.addWidget(group_box)
+        layout.addWidget(cleaning_group_box)
         self.setLayout(layout)
 
     def select_context_file(self):

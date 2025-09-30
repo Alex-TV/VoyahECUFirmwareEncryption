@@ -2,7 +2,6 @@
 import os
 import sqlite3
 
-
 def update_context_db(db_path, base_dir):
     # Подключаемся к базе данных
     conn = sqlite3.connect(db_path)
@@ -108,7 +107,6 @@ def update_context_db(db_path, base_dir):
     # Сохраняем и закрываем
     conn.commit()
     conn.close()
-
 
 def clear_context_db(db_path, target_version, remove_ivi):
     # Подключаемся к базе данных

@@ -1,7 +1,7 @@
 ﻿import configparser
 import os
 import binascii
-
+#TODO: создать для setting транзакцию, что бы не сохраняло каждый раз когда в процессе нужно менять настройки
 class SettingsManager:
     def __init__(self, settings_file='setting.ini'):
         self.settings_file = settings_file
@@ -85,6 +85,18 @@ class SettingsManager:
 
     def set_ecu(self, ecu):
         self.set('ENCRYPTION', 'ecu', ecu)
+
+    def get_context_pattern_path(self):
+        return self.get('ENCRYPTION', 'context_path', fallback='')
+
+    def set_context_pattern_path(self, path):
+        self.set('ENCRYPTION', 'context_path', path)
+
+    def get_input_group_path(self):
+        return self.get('ENCRYPTION', 'group_path', fallback='')
+
+    def set_input_group_path(self, path):
+        self.set('ENCRYPTION', 'group_path', path)
 
     # AES Keys
     def get_aes_key(self):
