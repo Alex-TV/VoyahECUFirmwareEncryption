@@ -3,7 +3,6 @@ import base64
 import hashlib
 import json
 import sqlite3
-from sys import exception
 
 from core.crypto_utils import encrypt_file, generate_pkcs7_envelop, sign_file_p7s
 from core.output_manager import OutputManager
@@ -11,7 +10,6 @@ from core.output_manager import OutputManager
 
 def encrypt_files(bin_path, otx_path, aes_key, iv, envelop,
                   sign_cert_path, sign_key_path, output_manager, openssl_path="openssl"):
-
     save_dir = output_manager.get_ecu_dir()
     if not save_dir:
         raise ValueError("Please set save path in settings!")
@@ -59,8 +57,8 @@ def encrypt_files(bin_path, otx_path, aes_key, iv, envelop,
 
     return data
 
-def encrypt_otx_files(otx_path, aes_key, iv, output_manager):
 
+def encrypt_otx_files(otx_path, aes_key, iv, output_manager):
     save_dir = output_manager.get_ecu_dir()
     if not save_dir:
         raise ValueError("Please set save path in settings!")
@@ -86,8 +84,8 @@ def encrypt_otx_files(otx_path, aes_key, iv, output_manager):
 
     return data
 
-def encrypt_group_file(context_path, group_path, aes_key, iv, settings):
 
+def encrypt_group_file(context_path, group_path, aes_key, iv, settings):
     cert_path = settings.get_cert_path()
     sign_cert_path = settings.get_sign_cert_path()
     sign_key_path = settings.get_sign_key_path()
@@ -95,12 +93,10 @@ def encrypt_group_file(context_path, group_path, aes_key, iv, settings):
     envelop = settings.get_envelop()
 
     if not cert_path:
-        exception('Error', 'Please set cert paths in settings!')
-        return
+        raise ValueError('Please set cert paths in settings!')
 
     if not envelop:
-        exception('Error', 'Please generate envelop in settings!')
-        return
+        raise ValueError('Please generate envelop in settings!')
 
     # Подключаемся к базе данных
     conn = sqlite3.connect(context_path)
@@ -133,12 +129,7 @@ def encrypt_group_file(context_path, group_path, aes_key, iv, settings):
         settings.set_ecu(ecu_name)
         output_manager = OutputManager(settings)
 
-        save_dir = output_manager.get_ecu_dir()
-
-        if not save_dir:
-            raise ValueError('Please set save paths in settings!')
-
-        encrypt_files(bin_pas, otx_pas, save_dir, aes_key, iv, envelop,
-                      sign_cert_path, sign_key_path, output_manager, openssl_path)
+        encrypt_files(bin_pas, otx_pas, aes_key, iv, envelop, sign_cert_path,
+                      sign_key_path, output_manager, openssl_path)
     conn.close()
     settings.set_ecu(ecu_default)
