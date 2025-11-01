@@ -37,10 +37,13 @@ def encrypt_files(bin_path, otx_path, aes_key, iv, envelop,
     # Подпись оригинальных (НЕ зашифрованных) файлов
     bin_signature = None
     otx_signature = None
-    if sign_cert_path and sign_key_path and os.path.exists(sign_cert_path) and os.path.exists(sign_key_path):
-        bin_signature = sign_file_p7s(bin_path, sign_cert_path, sign_key_path, save_dir, openssl_path)
-        otx_signature = sign_file_p7s(otx_path, sign_cert_path, sign_key_path, save_dir, openssl_path)
 
+    try:
+        if sign_cert_path and sign_key_path and os.path.exists(sign_cert_path) and os.path.exists(sign_key_path):
+            bin_signature = sign_file_p7s(bin_path, sign_cert_path, sign_key_path)
+            otx_signature = sign_file_p7s(otx_path, sign_cert_path, sign_key_path)
+    except Exception as e:
+        raise ValueError(f"Error creating signatures: {str(e)}")
     # Generate output JSON
 
     data = output_manager.get_data()
@@ -56,7 +59,6 @@ def encrypt_files(bin_path, otx_path, aes_key, iv, envelop,
     output_manager.update_json(data)
 
     return data
-
 
 def encrypt_otx_files(otx_path, aes_key, iv, output_manager):
     save_dir = output_manager.get_ecu_dir()
@@ -83,7 +85,6 @@ def encrypt_otx_files(otx_path, aes_key, iv, output_manager):
     output_manager.update_json(data)
 
     return data
-
 
 def encrypt_group_file(context_path, group_path, aes_key, iv, settings):
     cert_path = settings.get_cert_path()
