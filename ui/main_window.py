@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
 
         self.sidebar_list = QListWidget()
         self.sidebar_list.addItem("🔐 Encryption")
-        self.sidebar_list.addItem("🔓 Decryption")
+        #self.sidebar_list.addItem("🔓 Decryption")
         self.sidebar_list.addItem("🧠 Context")
         self.sidebar_list.addItem("⚙️ Settings")
         self.sidebar_list.setCurrentRow(0)
@@ -65,13 +65,13 @@ class MainWindow(QMainWindow):
         if index == 0:
             self.content_stack.setParent(None)
             self.content_stack = EncryptionTab(self.settings)
+        # elif index == 1:
+        #     self.content_stack.setParent(None)
+        #     self.content_stack = DecryptionTab(self.settings)
         elif index == 1:
             self.content_stack.setParent(None)
-            self.content_stack = DecryptionTab(self.settings)
-        elif index == 2:
-            self.content_stack.setParent(None)
             self.content_stack = ContextTab(self.settings)
-        elif index == 3:
+        elif index == 2:
             self.content_stack.setParent(None)
             self.content_stack = SettingsTab(self.settings)
 
