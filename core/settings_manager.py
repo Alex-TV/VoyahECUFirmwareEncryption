@@ -1,7 +1,7 @@
 ﻿import configparser
 import os
 import binascii
-
+#TODO: создать для setting транзакцию, что бы не сохраняло каждый раз когда в процессе нужно менять настройки
 class SettingsManager:
     def __init__(self, settings_file='setting.ini'):
         self.settings_file = settings_file
@@ -50,17 +50,17 @@ class SettingsManager:
     def set_sign_key_path(self, path):
         self.set('DEFAULT', 'sign_key_path', path)
 
-    def get_save_path(self):
-        return self.get('DEFAULT', 'save_path', fallback='')
+    def get_output_path(self):
+        return self.get('DEFAULT', 'output_path', fallback='')
 
-    def set_save_path(self, path):
-        self.set('DEFAULT', 'save_path', path)
+    def set_output_path(self, path):
+        self.set('DEFAULT', 'output_path', path)
 
     def get_bin_path(self):
-        return self.get('DEFAULT', 'bin_path', fallback='')
+        return self.get('ENCRYPTION', 'bin_path', fallback='')
 
     def set_bin_path(self, path):
-        self.set('DEFAULT', 'bin_path', path)
+        self.set('ENCRYPTION', 'bin_path', path)
 
     def get_encripted_bin_path(self):
         return self.get('DEFAULT', 'encripted_bin_path', fallback='')
@@ -69,10 +69,10 @@ class SettingsManager:
         self.set('DEFAULT', 'encripted_bin_path', path)
 
     def get_otx_path(self):
-        return self.get('DEFAULT', 'otx_path', fallback='')
+        return self.get('ENCRYPTION', 'otx_path', fallback='')
 
     def set_otx_path(self, path):
-        self.set('DEFAULT', 'otx_path', path)
+        self.set('ENCRYPTION', 'otx_path', path)
 
     def set_encripted_otx_path(self, path):
         self.set('DEFAULT', 'encripted_otx_path', path)
@@ -81,10 +81,22 @@ class SettingsManager:
         return self.get('DEFAULT', 'encripted_otx_path', fallback='')
 
     def get_ecu(self):
-        return self.get('DEFAULT', 'ecu', fallback='')
+        return self.get('ENCRYPTION', 'ecu', fallback='')
 
     def set_ecu(self, ecu):
-        self.set('DEFAULT', 'ecu', ecu)
+        self.set('ENCRYPTION', 'ecu', ecu)
+
+    def get_context_pattern_path(self):
+        return self.get('ENCRYPTION', 'context_path', fallback='')
+
+    def set_context_pattern_path(self, path):
+        self.set('ENCRYPTION', 'context_path', path)
+
+    def get_input_group_path(self):
+        return self.get('ENCRYPTION', 'group_path', fallback='')
+
+    def set_input_group_path(self, path):
+        self.set('ENCRYPTION', 'group_path', path)
 
     # AES Keys
     def get_aes_key(self):
@@ -112,3 +124,9 @@ class SettingsManager:
 
     def get_envelop(self):
         return self.get('AES_KEYS', 'envelop', fallback=None)
+
+    def get_context_path(self):
+        return self.get('CONTEXT', 'context_path', fallback=None)
+
+    def set_context_path(self, file_path):
+        self.set('CONTEXT', 'context_path', file_path)

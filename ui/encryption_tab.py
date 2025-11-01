@@ -1,18 +1,22 @@
 ﻿import json
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
+                             QPushButton, QComboBox, QFileDialog, QMessageBox, QGroupBox)
 from PyQt5.QtCore import Qt
-from core.encryption import encrypt_files, encrypt_otx_files
+from core.encryption import encrypt_files, encrypt_otx_files, encrypt_group_file
 from core.settings_manager import SettingsManager
 from core.output_manager import OutputManager
 
+
 class EncryptionTab(QWidget):
-    def __init__(self):
+    def __init__(self, settings: SettingsManager):
         super().__init__()
+        self.settings = settings
         self.bin_file_path = None
         self.otx_file_path = None
+        self.context_pattern_file_path = None
+        self.group_path = None
         self.aes_key = None
         self.iv_key = None
-        self.settings = SettingsManager()
         self.load_aes_keys()
         self.init_ui()
         self.load_paths_from_settings()
@@ -21,6 +25,15 @@ class EncryptionTab(QWidget):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignTop)
 
+        title_label = QLabel("🔐 Encryption:")
+        title_label.setStyleSheet("font-weight: bold; font-size: 16px;")
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+
+        layout.addSpacing(20)
+
+        single_encrypt_box = QGroupBox("🎯 Single Encryption")
+        single_encrypt_layout = QVBoxLayout()
         # ECU selection
         ecu_layout = QHBoxLayout()
         ecu_layout.addWidget(QLabel('ECU:'))
@@ -31,7 +44,7 @@ class EncryptionTab(QWidget):
              'MRR_FL', 'MRR_FR', 'MRR_RL', 'MRR_RR', 'OBC', 'POT', 'SWM', 'T-BOX', 'VCU', 'WCM'])
         self.ecu_combo.currentTextChanged.connect(self.on_ecu_changed)
         ecu_layout.addWidget(self.ecu_combo)
-        layout.addLayout(ecu_layout)
+        single_encrypt_layout.addLayout(ecu_layout)
 
         # Bin file selection
         bin_layout = QHBoxLayout()
@@ -41,7 +54,7 @@ class EncryptionTab(QWidget):
         bin_layout.addWidget(QLabel('Bin File:'))
         bin_layout.addWidget(self.bin_path)
         bin_layout.addWidget(bin_btn)
-        layout.addLayout(bin_layout)
+        single_encrypt_layout.addLayout(bin_layout)
 
         # OTX file selection
         otx_layout = QHBoxLayout()
@@ -51,16 +64,47 @@ class EncryptionTab(QWidget):
         otx_layout.addWidget(QLabel('OTX File:'))
         otx_layout.addWidget(self.otx_path)
         otx_layout.addWidget(otx_btn)
-        layout.addLayout(otx_layout)
+        single_encrypt_layout.addLayout(otx_layout)
 
         # Buttons
         encrypt_all_btn = QPushButton('Encrypt All Files')
         encrypt_all_btn.clicked.connect(self.encrypt_all)
-        layout.addWidget(encrypt_all_btn)
+        single_encrypt_layout.addWidget(encrypt_all_btn)
 
         encrypt_otx_btn = QPushButton('Encrypt OTX Only')
         encrypt_otx_btn.clicked.connect(self.encrypt_otx_only)
-        layout.addWidget(encrypt_otx_btn)
+        single_encrypt_layout.addWidget(encrypt_otx_btn)
+
+        single_encrypt_box.setLayout(single_encrypt_layout)
+        layout.addWidget(single_encrypt_box)
+
+        group_encrypt_box = QGroupBox("🧩 Group Encryption")
+        group_encrypt_layout = QVBoxLayout()
+
+        context_pattern_layout = QHBoxLayout()
+        self.context_pattern_file_line = QLineEdit()
+        context_pattern_btn = QPushButton('Select Context File')
+        context_pattern_btn.clicked.connect(self.select_context_pattern_file)
+        context_pattern_layout.addWidget(QLabel('Context File:'))
+        context_pattern_layout.addWidget(self.context_pattern_file_line)
+        context_pattern_layout.addWidget(context_pattern_btn)
+        group_encrypt_layout.addLayout(context_pattern_layout)
+
+        group_layout = QHBoxLayout()
+        self.group_path_line = QLineEdit()
+        group_btn = QPushButton('Select Group path')
+        group_btn.clicked.connect(self.select_group_file)
+        group_layout.addWidget(QLabel('Group path:'))
+        group_layout.addWidget(self.group_path_line)
+        group_layout.addWidget(group_btn)
+        group_encrypt_layout.addLayout(group_layout)
+
+        encrypt_froup_btn = QPushButton('Encrypt Group')
+        encrypt_froup_btn.clicked.connect(self.encrypt_group)
+        group_encrypt_layout.addWidget(encrypt_froup_btn)
+
+        group_encrypt_box.setLayout(group_encrypt_layout)
+        layout.addWidget(group_encrypt_box)
 
         self.setLayout(layout)
 
@@ -68,7 +112,6 @@ class EncryptionTab(QWidget):
         """Переход на новую ECU вызывает пересоздание output_manager."""
         if ecu != self.settings.get_ecu():
             self.settings.set_ecu(ecu)
-            self.output_manager = OutputManager(self.settings)
 
     def select_bin_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, 'Select Bin File', '', 'Bin Files (*.bin)')
@@ -89,6 +132,8 @@ class EncryptionTab(QWidget):
         bin_path = self.settings.get_bin_path()
         otx_path = self.settings.get_otx_path()
         ecu = self.settings.get_ecu()
+        context_path = self.settings.get_context_pattern_path()
+        group_path = self.settings.get_input_group_path()
 
         if bin_path:
             self.bin_path.setText(bin_path)
@@ -98,7 +143,12 @@ class EncryptionTab(QWidget):
             self.otx_file_path = otx_path
         if ecu:
             self.ecu_combo.setCurrentText(ecu)
-            self.output_manager = OutputManager(self.settings)
+        if context_path:
+            self.context_pattern_file_line.setText(context_path)
+            self.context_pattern_file_path = context_path
+        if group_path:
+            self.group_path_line.setText(group_path)
+            self.group_path = group_path
 
     def load_aes_keys(self):
         """Загружаем AES ключи из настроек"""
@@ -117,20 +167,26 @@ class EncryptionTab(QWidget):
             return
 
         cert_path = self.settings.get_cert_path()
-        save_path = self.output_manager.get_ecu_dir()
+
         sign_cert_path = self.settings.get_sign_cert_path()
         sign_key_path = self.settings.get_sign_key_path()
         openssl_path = self.settings.get_openssl_path()
         envelop = self.settings.get_envelop()
 
-        if not all([cert_path, save_path]):
-            QMessageBox.warning(self, 'Error', 'Please set cert and save paths in settings!')
+        if not cert_path:
+            QMessageBox.warning(self, 'Error', 'Please set cert paths in settings!')
             return
+
+        if not envelop:
+            QMessageBox.warning(self, 'Error', 'Please generate envelop in settings!')
+            return
+
+        output_manager = OutputManager(self.settings)
 
         try:
             output_json = encrypt_files(
-                self.bin_file_path, self.otx_file_path, save_path, self.aes_key, self.iv_key,
-                envelop, sign_cert_path, sign_key_path, self.output_manager, openssl_path)
+                self.bin_file_path, self.otx_file_path, self.aes_key, self.iv_key,
+                envelop, sign_cert_path, sign_key_path, output_manager, openssl_path)
             QMessageBox.information(self, 'Success', 'Files encrypted successfully!')
             print(json.dumps(output_json, indent=2))
         except Exception as e:
@@ -144,15 +200,43 @@ class EncryptionTab(QWidget):
             QMessageBox.warning(self, 'Error', 'Please generate AES keys first!')
             return
 
-        save_path = self.output_manager.get_ecu_dir()
+        output_manager = OutputManager(self.settings)
 
-        if not save_path:
-            QMessageBox.warning(self, 'Error', 'Please set save path in settings!')
+        try:
+            output_json = encrypt_otx_files(self.otx_file_path, self.aes_key, self.iv_key, output_manager)
+            QMessageBox.information(self, 'Success', 'OTX encrypted successfully!')
+            print(json.dumps(output_json, indent=2))
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', f'Encryption failed: {str(e)}')
+
+    def select_context_pattern_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, 'Select Context File', '', 'Context Files (*.db)')
+        if file_path:
+            self.context_pattern_file_line.setText(file_path)
+            self.context_pattern_file_path = file_path
+            self.settings.set_context_pattern_path(file_path)  # Сохраняем
+
+    def select_group_file(self):
+        path = QFileDialog.getExistingDirectory(self, 'Select Group Path')
+        if path:
+            self.group_path_line.setText(path)
+            self.group_path = path
+            self.settings.set_input_group_path(path)
+
+    def encrypt_group(self):
+
+        if not all([self.context_pattern_file_path, self.group_path]):
+            QMessageBox.warning(self, 'Error', 'Please select context and input path!')
+            return
+
+        if not self.aes_key:
+            QMessageBox.warning(self, 'Error', 'Please generate AES keys first!')
             return
 
         try:
-            output_json = encrypt_otx_files(self.otx_file_path, save_path, self.aes_key, self.iv_key, self.output_manager)
-            QMessageBox.information(self, 'Success', 'OTX encrypted successfully!')
-            print(json.dumps(output_json, indent=2))
+            encrypt_group_file(self.context_pattern_file_path, self.group_path,
+                               self.aes_key, self.iv_key, self.settings)
+            QMessageBox.information(self, 'Success', 'All Ecus encrypted successfully!')
+
         except Exception as e:
             QMessageBox.critical(self, 'Error', f'Encryption failed: {str(e)}')

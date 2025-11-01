@@ -25,7 +25,7 @@ class OutputManager:
     def __init__(self, settings: SettingsManager):
         self.settings = settings
         self.ecu = self.settings.get_ecu()
-        self.save_dir = self.settings.get_save_path()
+        self.save_dir = self.settings.get_output_path()
         self.ecu_dir = None
         self.json_path = None
         self.data = {}
